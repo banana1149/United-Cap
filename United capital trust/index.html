@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institutional Portal | United Capital Trust</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Public+Sans:wght@300;400;600;700&display=swap');
+        
+        body { font-family: 'Public Sans', sans-serif; background-color: #f8fafc; font-size: 13px; color: #0f172a; overflow-x: hidden; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        [x-cloak] { display: none !important; }
+
+        .sensitive-data { transition: all 0.4s ease; }
+        .privacy-active .sensitive-data {
+            filter: blur(10px);
+            user-select: none;
+            opacity: 0.4;
+        }
+
+        .btn-interact { transition: all 0.15s ease; }
+        .btn-interact:active { transform: scale(0.97); }
+        .chart-container { position: relative; height: 260px; width: 100%; }
+
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* --- EXTENDED ANIMATION CODE BEGINS --- */
+        .portal-bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%);
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            animation: float-orb 20s infinite alternate ease-in-out;
+            opacity: 0.4;
+        }
+
+        .orb-1 { width: 600px; height: 600px; background: #dbeafe; top: -100px; right: -100px; animation-duration: 25s; }
+        .orb-2 { width: 500px; height: 500px; background: #eff6ff; bottom: -100px; left: -100px; animation-duration: 30s; animation-delay: -5s; }
+        .orb-3 { width: 400px; height: 400px; background: #f1f5f9; top: 20%; left: 30%; animation-duration: 35s; animation-delay: -10s; }
+
+        @keyframes float-orb {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, 50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+
+        .grid-overlay {
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px);
+            background-size: 50px 50px;
+            mask-image: radial-gradient(circle at center, black, transparent 80%);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .login-card-glow {
+            position: relative;
+        }
+        .login-card-glow::after {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, transparent, #3b82f6, transparent, #3b82f6, transparent);
+            background-size: 400%;
+            z-index: -1;
+            border-radius: 2.6rem;
+            filter: blur(10px);
+            animation: border-glow 12s linear infinite;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .login-card-active::after { opacity: 0.3; }
+
+        @keyframes border-glow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .scanning-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+            animation: scan 3s linear infinite;
+            z-index: 10;
+            opacity: 0.5;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .data-stream {
+            position: absolute;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8px;
+            color: #3b82f6;
+            opacity: 0.1;
+            white-space: nowrap;
+            pointer-events: none;
+            animation: stream 15s linear infinite;
+        }
+
+        @keyframes stream {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(1000%); }
+        }
+
+        /* Particles for the background */
+        .particle {
+            position: absolute;
+            background: #3b82f6;
+            border-radius: 50%;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Refined Title Animation */
+        .hero-text-glow {
+            text-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+        }
+
+        /* --- EXTENDED ANIMATION CODE ENDS --- */
+    </style>
+</head>
+
+<body x-data="uctPortal()" :class="{ 'privacy-active': ui.privacyMode }" class="antialiased">
+
+    <div class="portal-bg-canvas" x-show="!session.active">
+        <div class="grid-overlay"></div>
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        
+        <div class="data-stream" style="left: 5%; animation-delay: 0s;">ENC_KEY_AUTH_v2.09...</div>
+        <div class="data-stream" style="left: 15%; animation-delay: 2s;">SECURE_HANDSHAKE_INIT...</div>
+        <div class="data-stream" style="left: 85%; animation-delay: 4s;">SSL_RSA_AES_256_ACTIVE...</div>
+        <div class="data-stream" style="left: 95%; animation-delay: 1s;">TRADING_TERMINAL_READY...</div>
+
+        <template x-for="i in 15">
+            <div class="particle animate__animated animate__fadeIn" 
+                 :style="`width: ${Math.random()*4+2}px; height: ${Math.random()*4+2}px; left: ${Math.random()*100}%; top: ${Math.random()*100}%; animation: float-orb ${Math.random()*10+10}s infinite alternate;`">
+            </div>
+        </template>
+    </div>
+
+    <div id="portal-overlays">
+        
+        <template x-if="ui.modals.login">
+            <div class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-md animate__animated animate__fadeIn" @click="toggleModal('login', false)"></div>
+                <div class="relative bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden animate__animated animate__backInDown login-card-glow login-card-active">
+                    <div class="scanning-line"></div>
+                    <div class="bg-slate-900 p-6 flex justify-between items-center text-white relative">
+                        <div class="flex flex-col">
+                            <span class="text-[9px] font-bold uppercase tracking-[0.3em] opacity-60">Identity Shield</span>
+                            <span class="text-xs font-black uppercase tracking-widest">Portal Access</span>
+                        </div>
+                        <i class="fas fa-fingerprint text-blue-500 text-2xl animate__animated animate__pulse animate__infinite"></i>
+                    </div>
+                    <div class="p-8">
+                        <div x-show="auth.step === 1" class="space-y-4 animate__animated animate__fadeInLeft">
+                            <div class="relative">
+                                <input type="text" x-model="auth.form.id" placeholder="TRUST ID" class="w-full bg-slate-50 border border-slate-200 p-3.5 pl-10 rounded-2xl outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-50 mono uppercase transition-all">
+                                <i class="fas fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+                            </div>
+                            <div class="relative">
+                                <input type="password" x-model="auth.form.pin" placeholder="SECURITY PIN" class="w-full bg-slate-50 border border-slate-200 p-3.5 pl-10 rounded-2xl outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-50 tracking-widest transition-all">
+                                <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+                            </div>
+                            <p x-show="auth.error" x-text="auth.error" class="text-red-500 text-[10px] font-bold text-center animate__animated animate__shakeX"></p>
+                            <button @click="proceedToMFA()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest btn-interact shadow-lg shadow-blue-200 hover:shadow-blue-400/50 transition-all">Authenticate Profile</button>
+                        </div>
+                        <div x-show="auth.step === 2" class="text-center animate__animated animate__fadeInRight">
+                            <h3 class="font-black text-sm mb-1 uppercase tracking-tight text-slate-800">2FA Challenge</h3>
+                            <input type="text" x-model="auth.form.otp" maxlength="4" placeholder="0000" class="w-full bg-slate-50 border border-slate-200 p-5 rounded-3xl text-center text-4xl font-black tracking-[0.4em] outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-50 mb-6 mono">
+                            <button @click="executeLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest btn-interact">Verify Crypt-Key</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <template x-if="ui.modals.emergency">
+            <div class="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-red-950/40 backdrop-blur-md animate__animated animate__fadeIn" @click="ui.modals.emergency = false"></div>
+                
+                <div class="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate__animated animate__zoomIn">
+                    
+                    <div x-show="ui.showFeeError" class="absolute inset-0 z-[120] bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-8 text-center animate__animated animate__fadeIn">
+                        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-6 animate__animated animate__shakeX animate__infinite">
+                            <i class="fas fa-hand-holding-dollar text-red-600 text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-slate-900 mb-2 uppercase tracking-tight">Administrative Lock</h3>
+                        <p class="text-slate-500 text-[11px] mb-6 leading-relaxed px-4">
+                            An emergency liquidation service fee of <span class="font-black text-red-600" x-text="utils.formatCurrency(session.user.serviceFee)"></span> is required to proceed with this high-priority disbursement.
+                        </p>
+                        <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 w-full mb-8">
+                            <p class="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-1">Assigned Officer</p>
+                            <p class="text-xs font-black text-slate-800" x-text="session.user.officer.name"></p>
+                            <p class="text-[10px] font-bold text-slate-500 mono" x-text="session.user.officer.email"></p>
+                        </div>
+                        <button @click="ui.showFeeError = false" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl">Acknowledge</button>
+                    </div>
+
+                    <div class="bg-red-600 p-5 text-white flex justify-between items-center font-bold text-[10px] tracking-[0.2em] uppercase">
+                        <span>Emergency Liquidation Request</span>
+                        <i class="fas fa-bolt-lightning animate-pulse"></i>
+                    </div>
+                    <div class="p-8 space-y-5">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[9px] font-bold text-slate-400 uppercase">Amount (USD)</label>
+                                <input type="number" x-model="emergency.amount" class="w-full text-2xl font-bold border-b border-slate-100 focus:border-red-600 outline-none py-1">
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-bold text-slate-400 uppercase">HEMS Reason</label>
+                                <select x-model="emergency.reason" class="w-full mt-1 p-2 bg-slate-50 rounded-lg text-[10px] font-bold border border-slate-200">
+                                    <option value="">Select...</option>
+                                    <option value="Medical">Medical Care</option>
+                                    <option value="Education">Tuition</option>
+                                    <option value="Support">Vital Support</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                            <label class="text-[9px] font-black text-blue-600 uppercase mb-2 block tracking-widest">Withdrawal Passkey Required</label>
+                            <input type="text" x-model="emergency.passkey" maxlength="6" placeholder="ENTER 6-CHAR PASSKEY" class="w-full p-3 rounded-xl border border-blue-200 text-center mono font-bold text-xs tracking-[0.3em] uppercase outline-none focus:ring-4 ring-blue-500/20">
+                        </div>
+                        <button @click="executeEmergencyWithdrawal()" class="w-full py-4 rounded-2xl font-bold text-[11px] uppercase text-white bg-red-600 shadow-lg shadow-red-100 hover:bg-red-700 btn-interact">
+                            Authorize Disbursement
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <div id="app" class="min-h-screen flex flex-col relative z-10">
+        <nav class="bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 h-14 flex justify-between items-center sticky top-0 z-50">
+            <div class="flex items-center space-x-3">
+                <div class="w-7 h-7 bg-blue-700 rounded-lg flex items-center justify-center text-white text-[10px]"><i class="fas fa-vault"></i></div>
+                <h1 class="font-black text-xs tracking-widest uppercase">United Capital Trust</h1>
+            </div>
+            <div x-show="session.active" class="flex items-center space-x-5 animate__animated animate__fadeIn">
+                <button @click="togglePrivacy()" :class="ui.privacyMode ? 'text-blue-600' : 'text-slate-400'" class="text-[9px] font-bold uppercase tracking-[0.2em] flex items-center btn-interact">
+                    <i class="fas mr-1.5" :class="ui.privacyMode ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    <span x-text="ui.privacyMode ? 'Private' : 'Public'"></span>
+                </button>
+                <button @click="terminateSession()" class="text-slate-400 hover:text-red-600 transition-colors btn-interact"><i class="fas fa-power-off text-xs"></i></button>
+            </div>
+            <template x-if="!session.active">
+                <button @click="toggleModal('login', true)" class="bg-blue-600 text-white px-6 py-2 rounded-full font-bold text-[10px] uppercase tracking-widest btn-interact">Client Access</button>
+            </template>
+        </nav>
+
+        <main x-show="session.active" x-cloak class="flex-1 max-w-6xl mx-auto w-full p-8 animate__animated animate__fadeIn">
+            <div class="mb-10 flex items-end justify-between">
+                <div>
+                    <h2 class="text-3xl font-black tracking-tighter">Client: <span class="text-blue-700" x-text="session.user.name"></span></h2>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-1">Multi-Factor Secured Terminal</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Trust ID</p>
+                    <p class="text-xs font-black mono text-slate-900" x-text="session.user.id"></p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-6 mb-6">
+                <div class="col-span-12 md:col-span-8 space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden">
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2">Net Asset Valuation</p>
+                            <h3 class="text-3xl font-bold sensitive-data" x-text="utils.formatCurrency(session.user.balance)"></h3>
+                            <div class="mt-4 inline-block bg-blue-500/20 px-2 py-1 rounded text-[9px] font-bold text-blue-400">Yield: <span x-text="session.user.growth"></span></div>
+                            <i class="fas fa-chart-line absolute -right-4 -bottom-4 text-7xl text-white/5"></i>
+                        </div>
+                        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 flex flex-col justify-between shadow-sm">
+                            <div>
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2">Instant Liquidity</p>
+                                <h3 class="text-2xl font-bold text-slate-900 sensitive-data" x-text="utils.formatCurrency(session.user.liquid)"></h3>
+                            </div>
+                            <button @click="ui.modals.emergency = true" class="mt-8 w-full bg-red-50 text-red-600 py-3 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] border border-red-100 hover:bg-red-600 hover:text-white transition-all btn-interact">
+                                <i class="fas fa-triangle-exclamation mr-1.5"></i> Emergency Withdrawal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-span-12 md:col-span-4 bg-white border border-slate-200 p-8 rounded-[2.5rem] h-fit shadow-sm">
+                    <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-8 flex items-center">
+                        <i class="fas fa-shield-halved mr-2"></i> Activity Audit
+                    </h4>
+                    <div class="space-y-6 max-h-40 overflow-y-auto pr-2 custom-scroll">
+                        <template x-for="log in audit.logs">
+                            <div class="border-b border-slate-50 pb-4 last:border-0">
+                                <p class="text-[10px] font-black text-slate-800 uppercase leading-tight" x-text="log.action"></p>
+                                <span class="text-[8px] mono text-slate-400 font-bold" x-text="log.timestamp.slice(11,19)"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-12 mt-4">
+                <div class="bg-blue-600 rounded-[2.5rem] p-1 shadow-xl">
+                    <div class="bg-slate-900 rounded-[2.3rem] p-8 flex flex-col md:flex-row items-center justify-between">
+                        <div class="flex items-center space-x-6">
+                            <div class="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center border border-blue-500/30">
+                                <i class="fas fa-user-tie text-2xl text-blue-400"></i>
+                            </div>
+                            <div>
+                                <p class="text-[9px] font-bold text-blue-500 uppercase tracking-[0.4em] mb-1">Institutional Service Officer</p>
+                                <h4 class="text-xl font-black text-white" x-text="session.user.officer.name"></h4>
+                                <div class="flex items-center space-x-4 mt-2">
+                                    <div class="flex items-center text-[10px] font-bold text-slate-400 mono">
+                                        <i class="fas fa-envelope mr-2 text-blue-500"></i>
+                                        <span x-text="session.user.officer.email"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <main x-show="!session.active" class="flex-1 flex flex-col items-center justify-center p-10 text-center bg-transparent relative overflow-hidden">
+            <div class="max-w-2xl animate__animated animate__fadeInUp">
+                <span class="px-5 py-2 bg-white/50 backdrop-blur text-slate-500 rounded-full text-[9px] font-black uppercase tracking-[0.5em] mb-10 inline-block border border-slate-200">United Capital Trust</span>
+                <h2 class="text-6xl font-black tracking-tighter mb-8 leading-[0.9] hero-text-glow">Stewardship <br><span class="text-blue-600">Perfected.</span></h2>
+                <div class="relative inline-block group">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                    <button @click="toggleModal('login', true)" class="relative bg-slate-900 text-white px-12 py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.3em] btn-interact shadow-2xl">Access Terminal</button>
+                </div>
+                
+                <div class="mt-16 flex justify-center space-x-12 opacity-30 grayscale hover:grayscale-0 transition-all">
+                    <i class="fas fa-building-columns text-3xl"></i>
+                    <i class="fas fa-microchip text-3xl"></i>
+                    <i class="fas fa-globe text-3xl"></i>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function uctPortal() {
+            return {
+                ui: { modals: { login: false, emergency: false }, privacyMode: false, processing: false, showFeeError: false },
+                auth: { step: 1, form: { id: '', pin: '', otp: '' }, error: null },
+                session: { active: false, user: null },
+                emergency: { amount: '', reason: '', agreed: true, passkey: '' },
+                audit: {
+                    logs: [],
+                    addLog(action) { this.logs.unshift({ timestamp: new Date().toISOString(), action }); }
+                },
+                utils: {
+                    formatCurrency(val) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val); }
+                },
+
+                _db: {
+                    'UCT-9072': { 
+                        id: 'UCT-9072', pin: '7311', otp: '8590', passkey: 'R5#O23', name: 'Amy Charlotte', 
+                        balance: 39893.00, liquid: 7387.00, growth: '14.2%', history: [8500, 9200, 10100, 11000, 11500, 12000, 12450],
+                        serviceFee: 300.00,
+                        officer: { name: 'kyla Denver', email: 'kyradenver146@gmail.com', phone: '' }
+                    },
+                    'UCT-442': { 
+                        id: 'UCT-442', pin: '5566', otp: '4433', passkey: 'MARCH1', name: 'Sarah Montgomery', 
+                        balance: 8210000.50, liquid: 85000.00, growth: '9.8%', history: [7000, 7200, 7500, 7800, 8000, 8100, 8210],
+                        serviceFee: 1250.00,
+                        officer: { name: 'Elena Rossi', email: 'e.rossi@unitedcapital.trust', phone: '+1 (212) 880-992' }
+                    },
+                    'UCT-109': { 
+                        id: 'UCT-109', pin: '9900', otp: '1010', passkey: 'JR109X', name: 'Jameson Reed', 
+                        balance: 1150000.00, liquid: 12000.00, growth: '6.4%', history: [900, 950, 980, 1020, 1080, 1120, 1150],
+                        serviceFee: 75.00,
+                        officer: { name: 'Marcus Sterling', email: 'm.sterling@unitedcapital.trust', phone: '+1 (212) 880-993' }
+                    }
+                },
+
+                toggleModal(key, state) {
+                    this.ui.modals[key] = state;
+                    if (!state) { this.auth.step = 1; this.auth.form = {id:'', pin:'', otp:''}; this.auth.error = null; this.ui.showFeeError = false; }
+                },
+                togglePrivacy() { this.ui.privacyMode = !this.ui.privacyMode; this.audit.addLog(`Privacy Mode Toggled`); },
+                proceedToMFA() {
+                    const id = this.auth.form.id.toUpperCase();
+                    if(this._db[id] && this._db[id].pin === this.auth.form.pin) {
+                        this.auth.step = 2; this.auth.error = null;
+                        this.audit.addLog(`Access Verified: ${id}`);
+                    } else { this.auth.error = "INVALID CREDENTIALS"; }
+                },
+                executeLogin() {
+                    const id = this.auth.form.id.toUpperCase();
+                    if (this.auth.form.otp === this._db[id].otp) {
+                        this.session.user = this._db[id];
+                        this.session.active = true;
+                        this.ui.modals.login = false;
+                        this.audit.addLog(`Handshake Success: ${this.session.user.name}`);
+                    } else { this.auth.error = "INVALID 2FA CODE"; }
+                },
+                executeEmergencyWithdrawal() {
+                    if(!this.emergency.amount || !this.emergency.passkey) return;
+                    
+                    if(this.emergency.passkey.toUpperCase() !== this.session.user.passkey) {
+                        alert("SECURITY VIOLATION: INVALID PASSKEY");
+                        this.audit.addLog(`ALERT: Unauthorized Attempt`);
+                        return;
+                    }
+
+                    this.ui.showFeeError = true;
+                    this.audit.addLog(`BLOCK: Pending Fee $${this.session.user.serviceFee}`);
+                },
+                terminateSession() { this.session.active = false; this.audit.addLog('Manual Disconnect'); }
+            }
+        }
+    </script>
+</body>
+</html>
