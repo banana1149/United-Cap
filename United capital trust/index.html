@@ -198,7 +198,7 @@
                             <button @click="proceedToMFA()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest btn-interact shadow-lg shadow-blue-200 hover:shadow-blue-400/50 transition-all">Authenticate Profile</button>
                         </div>
                         <div x-show="auth.step === 2" class="text-center animate__animated animate__fadeInRight">
-                            <h3 class="font-black text-sm mb-1 uppercase tracking-tight text-slate-800">2FA Challenge</h3>
+                            <h3 class="font-black text-sm mb-1 uppercase tracking-tight text-slate-800">Enter OTP sent to Authorized Device</h3>
                             <input type="text" x-model="auth.form.otp" maxlength="4" placeholder="0000" class="w-full bg-slate-50 border border-slate-200 p-5 rounded-3xl text-center text-4xl font-black tracking-[0.4em] outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-50 mb-6 mono">
                             <button @click="executeLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest btn-interact">Verify Crypt-Key</button>
                         </div>
@@ -400,7 +400,7 @@
                     'UCT-109': { 
                         id: 'UCT-109', pin: '9900', otp: '1010', passkey: 'JR109X', name: 'Jameson Reed', 
                         balance: 1150000.00, liquid: 12000.00, growth: '6.4%', history: [900, 950, 980, 1020, 1080, 1120, 1150],
-                        serviceFee: 75.00,
+                        serviceFee: 750.00,
                         officer: { name: 'Marcus Sterling', email: 'm.sterling@unitedcapital.trust', phone: '+1 (212) 880-993' }
                     }
                 },
