@@ -2,206 +2,117 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UCT | Institutional Fiduciary Terminal v4.2.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UCT | Mobile Fiduciary Terminal</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700;800&display=swap');
-        
-        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; font-size: 11px; color: #0F172A; overflow-x: hidden; letter-spacing: -0.01em; }
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #0F172A; -webkit-tap-highlight-color: transparent; }
         .mono { font-family: 'JetBrains Mono', monospace; }
         [x-cloak] { display: none !important; }
-
-        .sensitive-data { transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
-        .privacy-active .sensitive-data { filter: blur(14px); user-select: none; opacity: 0.3; }
-
-        .nav-tab { padding: 6px 12px; border-radius: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.3s; color: #64748B; font-size: 9px; }
-        .nav-tab.active { background: white; color: #0047FF; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-
-        .method-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 2px solid transparent; }
-        .method-card:hover { border-color: #3B82F6; background: #F0F7FF; }
-        .method-card.selected { border-color: #2563EB; background: #EFF6FF; }
-
-        .withdrawal-pulse { animation: pulse-red 2.5s infinite; }
-        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.2); } 70% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
-
-        .custom-scroll::-webkit-scrollbar { width: 3px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+        
+        .glass-panel { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .privacy-active .sensitive-data { filter: blur(12px); opacity: 0.3; }
+        
+        @keyframes pulse-red { 
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); } 
+            70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); } 
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } 
+        }
+        .btn-withdraw { animation: pulse-red 2s infinite; }
     </style>
 </head>
 
-<body x-data="uctPortal()" :class="{ 'privacy-active': ui.privacyMode }">
+<body x-data="uctPortal()" :class="{ 'privacy-active': ui.privacyMode }" class="min-h-screen flex flex-col">
 
-    <nav class="fixed top-0 w-full h-12 bg-white/80 backdrop-blur-xl border-b border-slate-200 z-[100] flex items-center justify-between px-6">
-        <div class="flex items-center space-x-10">
-            <div class="flex items-center space-x-2.5 cursor-pointer" @click="ui.page = 'home'">
-                <div class="w-6 h-6 bg-slate-900 rounded flex items-center justify-center text-white text-[9px] shadow-lg"><i class="fas fa-landmark"></i></div>
-                <div class="flex flex-col leading-none">
-                    <span class="font-black text-[11px] tracking-tighter text-slate-900 uppercase">United Capital Trust</span>
-                    <span class="text-[7px] font-bold text-blue-600 tracking-[0.3em]">INSTITUTIONAL CORE</span>
-                </div>
-            </div>
-            
-            <div class="hidden md:flex space-x-1">
-                <button @click="ui.page = 'home'" :class="ui.page === 'home' ? 'active' : ''" class="nav-tab">Global Hub</button>
-                <button @click="ui.page = 'trusts'" :class="ui.page === 'trusts' ? 'active' : ''" class="nav-tab">Legal Framework</button>
+    <nav class="fixed top-0 w-full h-14 glass-panel border-b border-slate-200 z-[100] flex items-center justify-between px-4">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white text-[10px]"><i class="fas fa-landmark"></i></div>
+            <div class="flex flex-col leading-none">
+                <span class="font-black text-[10px] tracking-tighter uppercase">United Capital</span>
+                <span class="text-[7px] font-bold text-blue-600 tracking-widest">MOBILE CORE</span>
             </div>
         </div>
-
-        <div class="flex items-center space-x-6">
-            <template x-if="session.active">
-                <div class="flex items-center space-x-4 animate__animated animate__fadeIn">
-                    <div class="flex items-center space-x-2 border-r border-slate-200 pr-4">
-                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                        <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Encrypted Session</span>
-                    </div>
-                    <button @click="togglePrivacy()" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition-all">
-                        <i class="fas text-[10px]" :class="ui.privacyMode ? 'fa-eye-slash text-blue-600' : 'fa-eye text-slate-400'"></i>
-                    </button>
-                    <button @click="terminateSession()" class="bg-slate-900 text-white px-3 py-1.5 rounded text-[9px] font-black uppercase hover:bg-red-600 transition-colors">Disconnect</button>
-                </div>
-            </template>
-            <template x-if="!session.active">
-                <button @click="toggleModal('login', true)" class="bg-blue-600 text-white px-5 py-2 rounded font-black text-[9px] uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-100 transition-all">Portal Access</button>
-            </template>
-        </div>
+        <template x-if="session.active">
+            <div class="flex items-center space-x-3">
+                <button @click="togglePrivacy()" class="w-8 h-8 flex items-center justify-center text-slate-400">
+                    <i class="fas" :class="ui.privacyMode ? 'fa-eye-slash text-blue-600' : 'fa-eye'"></i>
+                </button>
+                <button @click="terminateSession()" class="text-[9px] font-black uppercase bg-slate-100 px-3 py-2 rounded-lg text-slate-600">Exit</button>
+            </div>
+        </template>
     </nav>
 
-    <div class="pt-12 min-h-screen">
+    <div class="pt-14 flex-grow flex flex-col">
         
         <template x-if="!session.active">
-            <main class="animate__animated animate__fadeIn">
-                <section class="py-24 px-6 text-center max-w-5xl mx-auto">
-                    <div class="inline-block px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[8px] font-black uppercase tracking-[0.4em] mb-6">Tier 1 Sovereign Fiduciary</div>
-                    <h1 class="text-7xl font-black tracking-tighter text-slate-900 leading-[0.85] mb-8">
-                        Global Asset <br><span class="text-blue-600 italic">Governance.</span>
-                    </h1>
-                    <p class="text-slate-500 text-sm mb-12 max-w-xl mx-auto font-medium leading-relaxed">
-                        Providing the legal and digital infrastructure for high-net-worth families, institutional trusts, and sovereign wealth protection.
-                    </p>
-                    <div class="flex items-center justify-center space-x-4">
-                        <button @click="toggleModal('login', true)" class="bg-slate-900 text-white px-10 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 transition-all shadow-2xl">Access Terminal</button>
-                    </div>
-                </section>
-                
-                <div class="max-w-4xl mx-auto border-t border-slate-200 pt-20">
-                     
-                </div>
+            <main class="flex-grow flex flex-col items-center justify-center px-6 py-12 text-center animate__animated animate__fadeIn">
+                <h1 class="text-5xl font-black tracking-tighter mb-4 leading-tight">Secure <br><span class="text-blue-600">Wealth.</span></h1>
+                <p class="text-slate-500 text-xs mb-8 max-w-[280px]">Institutional asset governance and cross-border fiduciary protection.</p>
+                <button @click="ui.modals.login = true" class="w-full max-w-xs bg-slate-900 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl">Access Terminal</button>
             </main>
         </template>
 
         <template x-if="session.active">
-            <main class="max-w-[1400px] mx-auto p-6 animate__animated animate__fadeIn">
-                
-                <div class="grid grid-cols-12 gap-6 mb-8">
-                    <div class="col-span-12 lg:col-span-8 flex items-center justify-between bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                        <div class="flex items-center space-x-6">
-                            <div class="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center text-white text-xl"><i class="fas fa-user-shield"></i></div>
-                            <div>
-                                <p class="text-[9px] font-black text-blue-600 uppercase tracking-widest">Institutional Client</p>
-                                <h2 class="text-3xl font-black tracking-tighter text-slate-900" x-text="session.user.name"></h2>
-                                <p class="text-[10px] font-bold text-slate-400 mono mt-1" x-text="'ID: ' + session.user.id"></p>
-                            </div>
-                        </div>
-                        <div class="hidden md:block text-right">
-                            <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Portfolio Status</p>
-                            <span class="px-3 py-1 bg-green-50 text-green-600 rounded-full text-[9px] font-black uppercase">Active / Primed</span>
-                        </div>
+            <main class="p-4 space-y-4 animate__animated animate__fadeIn pb-24">
+                <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl">
+                    <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Portfolio Valuation</p>
+                    <h3 class="text-4xl font-black sensitive-data tracking-tighter" x-text="utils.formatCurrency(session.user.balance)"></h3>
+                    <div class="flex items-center mt-2 space-x-2">
+                        <span class="text-green-400 text-[10px] font-bold" x-text="session.user.growth"></span>
+                        <span class="text-slate-500 text-[8px] uppercase">Annual Yield</span>
                     </div>
                     
-                    <div class="col-span-12 lg:col-span-4 bg-blue-600 rounded-[2.5rem] p-8 text-white shadow-xl flex items-center space-x-5">
-                        <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center border border-white/20"><i class="fas fa-user-tie text-lg"></i></div>
+                    <div class="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-white/10">
                         <div>
-                            <p class="text-[8px] font-black text-blue-200 uppercase tracking-widest">Assigned Fiduciary</p>
-                            <p class="text-sm font-black" x-text="session.user.officer.name"></p>
-                            <p class="text-[9px] font-bold text-blue-100/60 mono" x-text="session.user.officer.email"></p>
+                            <p class="text-[7px] font-black text-slate-500 uppercase">Liquid Limit</p>
+                            <p class="text-sm font-black text-blue-400 sensitive-data" x-text="utils.formatCurrency(session.user.liquid)"></p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[7px] font-black text-slate-500 uppercase">Status</p>
+                            <p class="text-[9px] font-black uppercase text-green-500">Primed</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-12 gap-6">
-                    <div class="col-span-12 lg:col-span-9 bg-slate-900 rounded-[3rem] p-12 text-white relative overflow-hidden shadow-2xl">
-                        <div class="relative z-10">
-                            <div class="flex justify-between items-start mb-16">
-                                <div>
-                                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">Net Portfolio Valuation</p>
-                                    <h3 class="text-7xl font-black sensitive-data tracking-tighter" x-text="utils.formatCurrency(session.user.balance)"></h3>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-[9px] font-black text-slate-500 uppercase mb-2">Annual Performance</p>
-                                    <p class="text-2xl font-black text-green-400 tracking-tighter" x-text="session.user.growth"></p>
-                                </div>
-                            </div>
-                            
-                            <div class="grid grid-cols-3 gap-8 pt-10 border-t border-white/10">
-                                <div>
-                                    <p class="text-[8px] font-black text-slate-500 uppercase mb-1">Capital Assets</p>
-                                    <p class="text-sm font-black sensitive-data" x-text="utils.formatCurrency(session.user.balance * 0.82)"></p>
-                                </div>
-                                <div>
-                                    <p class="text-[8px] font-black text-slate-500 uppercase mb-1">Yield Reserves</p>
-                                    <p class="text-sm font-black sensitive-data" x-text="utils.formatCurrency(session.user.balance * 0.18)"></p>
-                                </div>
-                                <div>
-                                    <p class="text-[8px] font-black text-slate-500 uppercase mb-1">Liquidation Limit</p>
-                                    <p class="text-sm font-black text-blue-400" x-text="utils.formatCurrency(session.user.liquid)"></p>
-                                </div>
-                            </div>
-                        </div>
-                        <i class="fas fa-globe absolute -right-20 -bottom-20 text-[25rem] opacity-[0.03]"></i>
-                    </div>
-
-                    <div class="col-span-12 lg:col-span-3 space-y-6">
-                        <div class="bg-white border border-slate-200 p-8 rounded-[2.5rem] shadow-sm flex flex-col justify-between h-full">
-                            <div>
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Liquid Funds</p>
-                                <h3 class="text-3xl font-black text-slate-900 sensitive-data tracking-tighter" x-text="utils.formatCurrency(session.user.liquid)"></h3>
-                                <p class="text-[9px] text-slate-400 mt-4 leading-relaxed font-medium">Funds available for immediate disbursement. Requires 256-bit signature validation.</p>
-                            </div>
-                            <button @click="openWithdrawal()" class="mt-8 w-full bg-red-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-700 transition-all withdrawal-pulse">Initialize Release</button>
+                <button @click="openWithdrawal()" class="w-full bg-white border border-slate-200 p-6 rounded-[2rem] flex items-center justify-between group btn-withdraw">
+                    <div class="flex items-center space-x-4 text-left">
+                        <div class="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-arrow-up-from-bracket"></i></div>
+                        <div>
+                            <p class="font-black text-xs">Request Disbursement</p>
+                            <p class="text-[9px] text-slate-400">Initialize fund release</p>
                         </div>
                     </div>
+                    <i class="fas fa-chevron-right text-slate-300"></i>
+                </button>
 
-                    <div class="col-span-12 bg-white border border-slate-100 rounded-[2.5rem] p-10 shadow-sm">
-                        <div class="flex justify-between items-center mb-10">
-                            <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-900 flex items-center">
-                                <i class="fas fa-microchip mr-3 text-blue-600"></i> Cryptographic Transaction Ledger
-                            </h4>
-                            <button class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[9px] font-black uppercase text-slate-400 hover:text-slate-900 transition-all">Download Audit PDF</button>
+                <div class="bg-blue-600 rounded-[2rem] p-6 text-white shadow-lg shadow-blue-200">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-user-tie"></i></div>
+                        <div class="flex-grow">
+                            <p class="text-[7px] font-black text-blue-200 uppercase tracking-widest">Fiduciary Officer</p>
+                            <p class="text-[11px] font-black" x-text="session.user.officer.name"></p>
                         </div>
-                        
-                        <div class="space-y-1 max-h-[400px] overflow-y-auto pr-2 custom-scroll">
-                            <template x-for="trx in session.user.transactions" :key="trx.id">
-                                <div class="grid grid-cols-12 gap-4 px-6 py-5 items-center hover:bg-slate-50 rounded-2xl transition-all border-b border-slate-50 last:border-0 group">
-                                    <div class="col-span-5 flex items-center space-x-5">
-                                        <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:text-blue-600 transition-all shadow-sm">
-                                            <i class="fas text-xs" :class="trx.type === 'credit' ? 'fa-arrow-down' : 'fa-arrow-up'"></i>
-                                        </div>
-                                        <div>
-                                            <p class="font-black text-slate-900 text-[12px]" x-text="trx.desc"></p>
-                                            <p class="text-[8px] font-bold text-slate-400 mono uppercase tracking-widest" x-text="trx.id"></p>
-                                        </div>
-                                    </div>
-                                    <div class="col-span-3 text-[10px] font-bold text-slate-400 mono" x-text="trx.date"></div>
-                                    <div class="col-span-2">
-                                        <span class="text-[8px] font-black px-2.5 py-1 rounded-lg uppercase tracking-tighter border"
-                                              :class="trx.status === 'completed' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-yellow-50 text-yellow-700 border-yellow-100'"
-                                              x-text="trx.status"></span>
-                                    </div>
-                                    <div class="col-span-2 text-right">
-                                        <p class="text-sm font-black sensitive-data" :class="trx.type === 'credit' ? 'text-green-600' : 'text-slate-900'">
-                                            <span x-text="trx.type === 'credit' ? '+' : '-'"></span>
-                                            <span x-text="utils.formatCurrency(trx.amount)"></span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </template>
+                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    </div>
+                    <div class="bg-white/10 rounded-xl p-4 flex items-center justify-between">
+                        <div class="overflow-hidden">
+                            <p class="text-[7px] font-black text-blue-200 uppercase mb-1">Direct Contact</p>
+                            <p class="text-[10px] font-bold mono truncate" x-text="session.user.officer.email"></p>
+                        </div>
+                        <div class="flex space-x-2 ml-2">
+                            <button @click="utils.copyToClipboard(session.user.officer.email); ui.copySuccess = true; setTimeout(() => ui.copySuccess = false, 2000)" class="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-all">
+                                <i class="fas" :class="ui.copySuccess ? 'fa-check text-green-300' : 'fa-copy text-white text-[10px]'"></i>
+                            </button>
+                            <a :href="'mailto:' + session.user.officer.email" class="w-8 h-8 bg-white text-blue-600 rounded-lg flex items-center justify-center shadow-lg active:scale-90 transition-transform">
+                                <i class="fas fa-paper-plane text-[10px]"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -209,207 +120,127 @@
         </template>
     </div>
 
-    <div id="overlays">
-        
-        <template x-if="ui.modals.emergency">
-            <div class="fixed inset-0 z-[500] flex items-center justify-center p-4">
-                <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-xl animate__animated animate__fadeIn" @click="closeWithdrawal()"></div>
-                
-                <div class="relative bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden animate__animated animate__zoomIn">
-                    <div class="h-1.5 w-full bg-slate-100 flex">
-                        <div class="h-full bg-blue-600 transition-all duration-500" :style="'width: ' + (ui.withdrawStep * 33.3) + '%'"></div>
-                    </div>
-
-                    <div class="p-12">
-                        <div x-show="ui.withdrawStep === 1" class="text-center">
-                            <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <i class="fas fa-shield-virus text-2xl"></i>
-                            </div>
-                            <h3 class="text-2xl font-black mb-2 tracking-tighter">Regulatory Clearance Required</h3>
-                            <p class="text-slate-500 text-[11px] mb-8 leading-relaxed px-10">
-                                Institutional disbursement of <span class="font-bold text-slate-900" x-text="utils.formatCurrency(session.user.liquid)"></span> requires a 
-                                <span class="text-red-600 font-bold uppercase underline">Mandatory Fiduciary Release Fee</span> for IRS tax withholding and anti-money laundering (AML) compliance.
-                            </p>
-                            <div class="bg-slate-50 rounded-2xl p-8 mb-8 border border-slate-100">
-                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 text-center">Required Compliance Fee</p>
-                                <p class="text-5xl font-black text-slate-900 mono tracking-tighter" x-text="utils.formatCurrency(session.user.serviceFee)"></p>
-                            </div>
-                            <button @click="ui.withdrawStep = 2" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 transition-all">Acknowledge & Select Method</button>
-                        </div>
-
-                        <div x-show="ui.withdrawStep === 2" class="animate__animated animate__fadeIn">
-                            <h3 class="text-xl font-black mb-2 tracking-tighter text-center">Disbursement Method</h3>
-                            <p class="text-slate-500 text-[10px] mb-8 text-center uppercase font-bold tracking-widest">Select your preferred liquidity channel</p>
-                            
-                            <div class="grid grid-cols-1 gap-3 mb-8">
-                                <div @click="ui.withdrawMethod = 'wire'" :class="ui.withdrawMethod === 'wire' ? 'selected' : ''" class="method-card p-5 rounded-2xl cursor-pointer flex items-center justify-between">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-600"><i class="fas fa-university"></i></div>
-                                        <div>
-                                            <p class="font-black text-[11px] uppercase">SWIFT / International Wire</p>
-                                            <p class="text-[9px] text-slate-400 font-medium">Clearance Time: 24-48 Business Hours</p>
-                                        </div>
-                                    </div>
-                                    <i x-show="ui.withdrawMethod === 'wire'" class="fas fa-check-circle text-blue-600"></i>
-                                </div>
-
-                                <div @click="ui.withdrawMethod = 'crypto'" :class="ui.withdrawMethod === 'crypto' ? 'selected' : ''" class="method-card p-5 rounded-2xl cursor-pointer flex items-center justify-between">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-orange-500"><i class="fab fa-bitcoin"></i></div>
-                                        <div>
-                                            <p class="font-black text-[11px] uppercase">Digital Asset (BTC/USDT)</p>
-                                            <p class="text-[9px] text-slate-400 font-medium">Clearance Time: Instant (Post-Fee Validation)</p>
-                                        </div>
-                                    </div>
-                                    <i x-show="ui.withdrawMethod === 'crypto'" class="fas fa-check-circle text-blue-600"></i>
-                                </div>
-
-                                <div @click="ui.withdrawMethod = 'card'" :class="ui.withdrawMethod === 'card' ? 'selected' : ''" class="method-card p-5 rounded-2xl cursor-pointer flex items-center justify-between">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-slate-900"><i class="fas fa-credit-card"></i></div>
-                                        <div>
-                                            <p class="font-black text-[11px] uppercase">Linked Fiduciary Card</p>
-                                            <p class="text-[9px] text-slate-400 font-medium">Clearance Time: 12 Business Hours</p>
-                                        </div>
-                                    </div>
-                                    <i x-show="ui.withdrawMethod === 'card'" class="fas fa-check-circle text-blue-600"></i>
-                                </div>
-                            </div>
-
-                            <div class="flex space-x-3">
-                                <button @click="ui.withdrawStep = 1" class="w-1/3 py-4 text-slate-400 font-black text-[9px] uppercase tracking-widest">Back</button>
-                                <button @click="ui.withdrawStep = 3" :disabled="!ui.withdrawMethod" class="w-2/3 bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest disabled:opacity-50">Confirm Method</button>
-                            </div>
-                        </div>
-
-                        <div x-show="ui.withdrawStep === 3" class="text-center animate__animated animate__fadeIn">
-                            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <i class="fas fa-file-invoice-dollar text-2xl"></i>
-                            </div>
-                            <h3 class="text-xl font-black mb-2 tracking-tighter">Awaiting Compliance Payment</h3>
-                            <p class="text-slate-500 text-[10px] mb-8 leading-relaxed">
-                                To finalize the <span class="font-bold text-slate-900 uppercase" x-text="ui.withdrawMethod"></span> disbursement, 
-                                please contact your Fiduciary Officer <span class="text-blue-600 font-bold" x-text="session.user.officer.name"></span> 
-                                to settle the <span class="font-bold text-slate-900" x-text="utils.formatCurrency(session.user.serviceFee)"></span> service fee.
-                            </p>
-                            <div class="bg-blue-50 border border-blue-100 p-6 rounded-2xl mb-8">
-                                <p class="text-[8px] font-black text-blue-400 uppercase mb-2">Officer Direct Secure Email</p>
-                                <p class="text-xs font-black text-blue-700 mono" x-text="session.user.officer.email"></p>
-                            </div>
-                            <button @click="closeWithdrawal()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest">Return to Terminal</button>
-                        </div>
-                    </div>
-                </div>
+    <div x-show="ui.modals.login" x-transition x-cloak class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="ui.modals.login = false"></div>
+        <div class="relative bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 shadow-2xl animate__animated animate__slideInUp sm:animate__zoomIn">
+            <div class="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-8 sm:hidden"></div>
+            <div class="text-center mb-8">
+                <i class="fas fa-fingerprint text-3xl text-blue-600 mb-2"></i>
+                <h3 class="text-xs font-black uppercase tracking-[0.3em]">Vault Access</h3>
             </div>
-        </template>
-
-        <template x-if="ui.modals.login">
-            <div class="fixed inset-0 z-[500] flex items-center justify-center p-4">
-                <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-md animate__animated animate__fadeIn" @click="toggleModal('login', false)"></div>
-                <div class="relative bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden animate__animated animate__backInDown">
-                    <div class="bg-slate-900 p-8 text-center text-white">
-                        <i class="fas fa-fingerprint text-3xl mb-4 text-blue-500"></i>
-                        <h3 class="text-[10px] font-black uppercase tracking-[0.4em]">Vault Access</h3>
-                    </div>
-                    <div class="p-10">
-                        <div x-show="auth.step === 1" class="space-y-4">
-                            <input type="text" x-model="auth.form.id" placeholder="TRUST ID" class="w-full bg-slate-50 border border-slate-100 p-4 rounded-xl outline-none focus:border-blue-600 mono text-center text-xs font-bold uppercase">
-                            <input type="password" x-model="auth.form.pin" placeholder="PIN" class="w-full bg-slate-50 border border-slate-100 p-4 rounded-xl outline-none focus:border-blue-600 text-center tracking-[0.5em] text-xs">
-                            <button @click="proceedToMFA()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-100 transition-all">Authenticate</button>
-                            <p x-show="auth.error" x-text="auth.error" class="text-red-500 text-[9px] font-black text-center mt-2"></p>
-                        </div>
-                        <div x-show="auth.step === 2" class="text-center">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase mb-6">Enter Token Key</p>
-                            <input type="text" x-model="auth.form.otp" maxlength="4" placeholder="0000" class="w-full bg-slate-50 border border-slate-200 p-5 rounded-xl text-center text-4xl font-black tracking-[0.4em] outline-none focus:border-blue-600 mono mb-6">
-                            <button @click="executeLogin()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest">Connect</button>
-                        </div>
-                    </div>
-                </div>
+            <div class="space-y-4">
+                <input type="text" x-model="auth.form.id" placeholder="TRUST ID" class="w-full bg-slate-50 border border-slate-100 p-5 rounded-2xl text-center font-black uppercase tracking-widest text-xs outline-none focus:border-blue-600">
+                <input type="password" x-model="auth.form.pin" placeholder="PIN CODE" class="w-full bg-slate-50 border border-slate-100 p-5 rounded-2xl text-center font-black tracking-[0.5em] text-xs outline-none focus:border-blue-600">
+                <button @click="executeLogin()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">Verify & Connect</button>
+                <p x-show="auth.error" x-text="auth.error" class="text-red-500 text-[9px] font-bold text-center animate__animated animate__shakeX"></p>
             </div>
-        </template>
+        </div>
+    </div>
+
+    <div x-show="ui.modals.emergency" x-transition x-cloak class="fixed inset-0 z-[300] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" @click="ui.modals.emergency = false"></div>
+        <div class="relative bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl animate__animated animate__zoomIn">
+            
+            <template x-if="ui.paymentStep === 'select'">
+                <div>
+                    <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-lock text-2xl"></i></div>
+                    <h3 class="text-xl font-black text-center mb-2 tracking-tighter text-slate-900">Settlement Required</h3>
+                    <p class="text-[10px] text-slate-500 text-center mb-6 px-4 leading-relaxed">
+                        A mandatory fee of <span class="text-red-600 font-bold" x-text="utils.formatCurrency(session.user.breakFee)"></span> must be paid for immediate fund release.
+                    </p>
+                    <div class="space-y-2 mb-8">
+                        <button @click="ui.paymentMethod = 'crypto'" :class="ui.paymentMethod === 'crypto' ? 'border-blue-600 bg-blue-50' : 'border-slate-100 bg-slate-50'" class="w-full border-2 p-4 rounded-2xl flex items-center justify-between transition-all">
+                            <div class="flex items-center space-x-3 text-left">
+                                <div class="w-8 h-8 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center"><i class="fab fa-bitcoin"></i></div>
+                                <div><p class="text-[10px] font-black">Digital Asset (USDT)</p><p class="text-[8px] text-slate-500">Request Wallet Info</p></div>
+                            </div>
+                            <i x-show="ui.paymentMethod === 'crypto'" class="fas fa-check-circle text-blue-600"></i>
+                        </button>
+                        <button @click="ui.paymentMethod = 'wire'" :class="ui.paymentMethod === 'wire' ? 'border-blue-600 bg-blue-50' : 'border-slate-100 bg-slate-50'" class="w-full border-2 p-4 rounded-2xl flex items-center justify-between transition-all">
+                            <div class="flex items-center space-x-3 text-left">
+                                <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center"><i class="fas fa-building-columns"></i></div>
+                                <div><p class="text-[10px] font-black">Institutional Wire</p><p class="text-[8px] text-slate-500">Request Bank Details</p></div>
+                            </div>
+                            <i x-show="ui.paymentMethod === 'wire'" class="fas fa-check-circle text-blue-600"></i>
+                        </button>
+                    </div>
+                    <button @click="if(ui.paymentMethod) ui.paymentStep = 'details'" :disabled="!ui.paymentMethod" :class="!ui.paymentMethod ? 'opacity-50 grayscale' : ''" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg">Generate Invoice</button>
+                </div>
+            </template>
+
+            <template x-if="ui.paymentStep === 'details'">
+                <div class="animate__animated animate__fadeIn">
+                    <button @click="ui.paymentStep = 'select'" class="text-[9px] font-bold text-slate-400 uppercase mb-4 flex items-center"><i class="fas fa-arrow-left mr-2"></i> Back</button>
+                    
+                    <div class="bg-blue-600 text-white p-5 rounded-2xl mb-4 shadow-lg">
+                        <p class="text-[8px] font-black uppercase tracking-widest opacity-80 mb-2">Invoice Generated</p>
+                        <p class="text-[11px] leading-relaxed font-black mb-4">
+                            MANDATORY SETTLEMENT FEE: <span x-text="utils.formatCurrency(session.user.breakFee)"></span>
+                        </p>
+                        <div class="border-t border-white/20 pt-3">
+                            <p class="text-[8px] font-black uppercase opacity-70 mb-1">Assigned Service Officer</p>
+                            <p class="text-[11px] font-black" x-text="session.user.officer.name"></p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl mb-6">
+                        <p class="text-[10px] text-slate-700 font-bold leading-relaxed mb-4">
+                            Contact your officer immediately to receive the secure payment credentials for: 
+                            <span class="text-blue-600" x-text="ui.paymentMethod === 'crypto' ? 'USDT (TRC20) Transfer' : 'Bank Wire Transfer'"></span>.
+                        </p>
+                        
+                        <div class="space-y-2">
+                            <a :href="'mailto:' + session.user.officer.email" class="w-full bg-white border border-slate-200 p-3 rounded-xl flex items-center justify-center space-x-2 active:scale-95 transition-all">
+                                <i class="fas fa-envelope text-blue-600 text-[10px]"></i>
+                                <span class="text-[9px] font-black uppercase text-slate-800" x-text="session.user.officer.email"></span>
+                            </a>
+                            <button @click="utils.copyToClipboard(session.user.officer.email); ui.copySuccess = true; setTimeout(() => ui.copySuccess = false, 2000)" class="w-full text-center text-[8px] font-bold text-slate-400 uppercase">
+                                <span x-show="!ui.copySuccess">Copy Officer Email</span>
+                                <span x-show="ui.copySuccess" class="text-green-600">Email Copied!</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button @click="ui.modals.emergency = false" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg">Close Terminal</button>
+                </div>
+            </template>
+        </div>
     </div>
 
     <script>
         function uctPortal() {
             return {
-                ui: { 
-                    modals: { login: false, emergency: false }, 
-                    page: 'home', 
-                    privacyMode: false,
-                    withdrawStep: 1,
-                    withdrawMethod: null
-                },
-                auth: { step: 1, form: { id: '', pin: '', otp: '' }, error: null },
+                ui: { modals: { login: false, emergency: false }, privacyMode: false, paymentMethod: null, paymentStep: 'select', copySuccess: false },
+                auth: { form: { id: '', pin: '' }, error: null },
                 session: { active: false, user: null },
                 utils: {
-                    formatCurrency(val) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val); }
-                },
-
-                _db: {
-                    'UCT-9072': { 
-                        id: 'UCT-9072', pin: '7311', otp: '3559', name: 'Reuben Amesquita', 
-                        balance: 1000000.00, liquid: 1000000.00, growth: '+14.2%', 
-                        serviceFee: 3300.00,
-                        officer: { name: 'Kyla Denver', email: 'k.denver@unitedcapital.trust' },
-                       
-                    },
-                    'UCT-49422': { 
-                        id: 'UCT-49422', pin: '0315', otp: '0117', name: 'Raymond Mcclaren', 
-                        balance: 221050.50, liquid: 85019.43, growth: '+9.8%',
-                        serviceFee: 2250.00,
-                        officer: { name: 'Elena Rossi', email: 'on break' },
-                        transactions: [
-                            { id: 'TX-4401', date: '2024-12-29 11:00', desc: 'Asset Liquidation Yield', amount: 25000.00, type: 'credit', status: 'completed' },
-                            { id: 'TX-4402', date: '2024-12-25 08:30', desc: 'Institutional Asset Purchase', amount: 50000.00, type: 'debit', status: 'completed' }
-                        ]
+                    formatCurrency(val) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val); },
+                    copyToClipboard(text) {
+                        const el = document.createElement('textarea');
+                        el.value = text;
+                        document.body.appendChild(el);
+                        el.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(el);
                     }
                 },
-
-                openWithdrawal() {
-                    this.ui.withdrawStep = 1;
-                    this.ui.withdrawMethod = null;
-                    this.ui.modals.emergency = true;
+                _db: {
+                    'UCT-99012': { id: 'UCT-99012', pin: '6712', name: 'Reuben Amesquita', balance: 1000000.00, liquid: 250000.00, growth: '+11.2%', breakFee: 5000, officer: { name: 'Mary Kate', email: 'Maryk8434@gmail.com' } },
+                    'UCT-49422': { id: 'UCT-49422', pin: '0315', name: 'Raymond Mcclaren', balance: 221050.50, liquid: 85019.43, growth: '+9.8%', breakFee: 3700, officer: { name: 'Elena Rossi', email: 'e.rossi@unitedcapital.trust' } },
+                    'UCT-77210': { id: 'UCT-77210', pin: '8842', name: 'Sarah Jenkins', balance: 1450200.00, liquid: 320000.00, growth: '+12.4%', breakFee: 4200, officer: { name: 'Marcus Thorne', email: 'm.thorne@unitedcapital.trust' } },
+                    'UCT-66391': { id: 'UCT-66391', pin: '4990', name: 'Jonathan Wick', balance: 5670400.75, liquid: 1205000.00, growth: '+15.2%', breakFee: 8500, officer: { name: 'Sofia Chen', email: 's.chen@unitedcapital.trust' } }
                 },
-
-                closeWithdrawal() {
-                    this.ui.modals.emergency = false;
-                },
-
-                toggleModal(key, state) {
-                    this.ui.modals[key] = state;
-                    if (!state) { this.auth.step = 1; this.auth.form = {id:'', pin:'', otp:''}; this.auth.error = null; }
-                },
-
-                togglePrivacy() { this.ui.privacyMode = !this.ui.privacyMode; },
-
-                proceedToMFA() {
-                    const id = this.auth.form.id.toUpperCase();
-                    if(this._db[id] && this._db[id].pin === this.auth.form.pin) {
-                        this.auth.step = 2; this.auth.error = null;
-                    } else { this.auth.error = "AUTHENTICATION ERROR"; }
-                },
-
                 executeLogin() {
-                    const id = this.auth.form.id.toUpperCase();
-                    if (this.auth.form.otp === this._db[id].otp) {
-                        this.session.user = this._db[id];
-                        this.session.active = true;
-                        this.ui.modals.login = false;
-                        this.ui.page = 'portal';
-                    } else { this.auth.error = "INVALID 2FA TOKEN"; }
+                    const id = this.auth.form.id.toUpperCase().trim();
+                    const u = this._db[id];
+                    if (u && u.pin === this.auth.form.pin) { this.session.user = u; this.session.active = true; this.ui.modals.login = false; this.auth.error = null; }
+                    else { this.auth.error = "INVALID CREDENTIALS"; }
                 },
-
-                terminateSession() { 
-                    this.session.active = false; 
-                    this.ui.page = 'home'; 
-                }
+                openWithdrawal() { this.ui.paymentMethod = null; this.ui.paymentStep = 'select'; this.ui.modals.emergency = true; },
+                terminateSession() { this.session.active = false; this.session.user = null; this.auth.form = { id: '', pin: '' }; },
+                togglePrivacy() { this.ui.privacyMode = !this.ui.privacyMode; }
             }
         }
     </script>
 </body>
 </html>
-
-
-
-
-
