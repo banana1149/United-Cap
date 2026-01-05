@@ -26,6 +26,10 @@
             100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } 
         }
         .btn-withdraw { animation: pulse-red 2s infinite; }
+
+        /* Custom Spinner Animation */
+        .spinner { animation: rotate 1s linear infinite; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 
@@ -33,10 +37,10 @@
 
     <nav class="fixed top-0 w-full h-14 glass-panel border-b border-slate-200 z-[100] flex items-center justify-between px-4">
         <div class="flex items-center space-x-2">
-            <div class="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white text-[10px]"><i class="fas fa-landmark"></i></div>
+            <div class="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white text-[10px] tracking-widest uppercase">UCT</div>
             <div class="flex flex-col leading-none">
                 <span class="font-black text-[10px] tracking-tighter uppercase">United Capital</span>
-                <span class="text-[7px] font-bold text-blue-600 tracking-widest">MOBILE CORE</span>
+                <span class="text-[7px] font-bold text-blue-600 tracking-widest uppercase">Mobile Core</span>
             </div>
         </div>
         <template x-if="session.active">
@@ -53,15 +57,18 @@
         
         <template x-if="!session.active">
             <main class="flex-grow flex flex-col items-center justify-center px-6 py-12 text-center animate__animated animate__fadeIn">
+                <div class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mb-8 animate__animated animate__bounceIn">
+                    <i class="fas fa-vault text-3xl text-blue-600"></i>
+                </div>
                 <h1 class="text-5xl font-black tracking-tighter mb-4 leading-tight">Secure <br><span class="text-blue-600">Wealth.</span></h1>
                 <p class="text-slate-500 text-xs mb-8 max-w-[280px]">Institutional asset governance and cross-border fiduciary protection.</p>
-                <button @click="ui.modals.login = true" class="w-full max-w-xs bg-slate-900 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl">Access Terminal</button>
+                <button @click="ui.modals.login = true" class="w-full max-w-xs bg-slate-900 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl active:scale-95 transition-transform">Access Terminal</button>
             </main>
         </template>
 
         <template x-if="session.active">
-            <main class="p-4 space-y-4 animate__animated animate__fadeIn pb-24">
-                <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl">
+            <main class="p-4 space-y-4 animate__animated animate__fadeInUp pb-24">
+                <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl animate__animated animate__zoomIn">
                     <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Portfolio Valuation</p>
                     <h3 class="text-4xl font-black sensitive-data tracking-tighter" x-text="utils.formatCurrency(session.user.balance)"></h3>
                     <div class="flex items-center mt-2 space-x-2">
@@ -81,7 +88,7 @@
                     </div>
                 </div>
 
-                <button @click="openWithdrawal()" class="w-full bg-white border border-slate-200 p-6 rounded-[2rem] flex items-center justify-between group btn-withdraw">
+                <button @click="openWithdrawal()" class="w-full bg-white border border-slate-200 p-6 rounded-[2rem] flex items-center justify-between group btn-withdraw animate__animated animate__fadeInUp animate__delay-1s">
                     <div class="flex items-center space-x-4 text-left">
                         <div class="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-arrow-up-from-bracket"></i></div>
                         <div>
@@ -92,7 +99,7 @@
                     <i class="fas fa-chevron-right text-slate-300"></i>
                 </button>
 
-                <div class="bg-blue-600 rounded-[2rem] p-6 text-white shadow-lg shadow-blue-200">
+                <div class="bg-blue-600 rounded-[2rem] p-6 text-white shadow-lg shadow-blue-200 animate__animated animate__fadeInUp animate__delay-2s">
                     <div class="flex items-center space-x-4 mb-4">
                         <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-xl"><i class="fas fa-user-tie"></i></div>
                         <div class="flex-grow">
@@ -121,19 +128,29 @@
     </div>
 
     <div x-show="ui.modals.login" x-transition x-cloak class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="ui.modals.login = false"></div>
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="if(!ui.loading) ui.modals.login = false"></div>
         <div class="relative bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 shadow-2xl animate__animated animate__slideInUp sm:animate__zoomIn">
             <div class="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-8 sm:hidden"></div>
+            
             <div class="text-center mb-8">
-                <i class="fas fa-fingerprint text-3xl text-blue-600 mb-2"></i>
-                <h3 class="text-xs font-black uppercase tracking-[0.3em]">Vault Access</h3>
+                <i class="fas fa-fingerprint text-3xl text-blue-600 mb-2 animate__animated animate__pulse animate__infinite"></i>
+                <h3 class="text-xs font-black uppercase tracking-[0.3em]">Identity Verification</h3>
             </div>
+
             <div class="space-y-4">
-                <input type="text" x-model="auth.form.id" placeholder="TRUST ID" class="w-full bg-slate-50 border border-slate-100 p-5 rounded-2xl text-center font-black uppercase tracking-widest text-xs outline-none focus:border-blue-600">
-                <input type="password" x-model="auth.form.pin" placeholder="PIN CODE" class="w-full bg-slate-50 border border-slate-100 p-5 rounded-2xl text-center font-black tracking-[0.5em] text-xs outline-none focus:border-blue-600">
-                <button @click="executeLogin()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">Verify & Connect</button>
+                <input type="text" x-model="auth.form.id" :disabled="ui.loading" placeholder="TRUST ID" class="w-full bg-slate-50 border border-slate-100 p-5 rounded-2xl text-center font-black uppercase tracking-widest text-xs outline-none focus:border-blue-600 transition-all">
+                <input type="password" x-model="auth.form.pin" :disabled="ui.loading" placeholder="PIN CODE" class="w-full bg-slate-50 border border-slate-100 p-5 rounded-2xl text-center font-black tracking-[0.5em] text-xs outline-none focus:border-blue-600 transition-all">
+                
+                <button @click="executeLogin()" :disabled="ui.loading" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl flex items-center justify-center space-x-3 active:scale-95 transition-all">
+                    <template x-if="!ui.loading"><span>Verify & Connect</span></template>
+                    <template x-if="ui.loading">
+                        <i class="fas fa-circle-notch spinner text-lg"></i>
+                    </template>
+                </button>
+                
                 <p x-show="auth.error" x-text="auth.error" class="text-red-500 text-[9px] font-bold text-center animate__animated animate__shakeX"></p>
             </div>
+            <div class="mt-8 safe-area-bottom"></div>
         </div>
     </div>
 
@@ -210,7 +227,14 @@
     <script>
         function uctPortal() {
             return {
-                ui: { modals: { login: false, emergency: false }, privacyMode: false, paymentMethod: null, paymentStep: 'select', copySuccess: false },
+                ui: { 
+                    modals: { login: false, emergency: false }, 
+                    privacyMode: false, 
+                    paymentMethod: null, 
+                    paymentStep: 'select', 
+                    copySuccess: false,
+                    loading: false 
+                },
                 auth: { form: { id: '', pin: '' }, error: null },
                 session: { active: false, user: null },
                 utils: {
@@ -225,16 +249,30 @@
                     }
                 },
                 _db: {
-                    'UCT-99012': { id: 'UCT-99012', pin: '6712', name: 'Reuben Amesquita', balance: 1000000.00, liquid: 250000.00, growth: '+11.2%', breakFee: 5000, officer: { name: 'Mary Kate', email: 'maryk8434@gmail.com' } },
+                    'UCT-99012': { id: 'UCT-99012', pin: '6734', name: 'Reuben Amesquita', balance: 1000000.00, liquid: 250000.00, growth: '+11.2%', breakFee: 5000, officer: { name: 'Mary Kate', email: 'maryk8434@gmail.com' } },
                     'UCT-49422': { id: 'UCT-49422', pin: '0315', name: 'Raymond Mcclaren', balance: 221050.50, liquid: 85019.43, growth: '+9.8%', breakFee: 3700, officer: { name: 'Elena Rossi', email: 'e.rossi@unitedcapital.trust' } },
                     'UCT-77210': { id: 'UCT-77210', pin: '8842', name: 'Sarah Jenkins', balance: 1450200.00, liquid: 320000.00, growth: '+12.4%', breakFee: 4200, officer: { name: 'Marcus Thorne', email: 'm.thorne@unitedcapital.trust' } },
                     'UCT-66391': { id: 'UCT-66391', pin: '4990', name: 'Jonathan Wick', balance: 5670400.75, liquid: 1205000.00, growth: '+15.2%', breakFee: 8500, officer: { name: 'Sofia Chen', email: 's.chen@unitedcapital.trust' } }
                 },
                 executeLogin() {
-                    const id = this.auth.form.id.toUpperCase().trim();
-                    const u = this._db[id];
-                    if (u && u.pin === this.auth.form.pin) { this.session.user = u; this.session.active = true; this.ui.modals.login = false; this.auth.error = null; }
-                    else { this.auth.error = "INVALID CREDENTIALS"; }
+                    this.ui.loading = true;
+                    this.auth.error = null;
+
+                   
+                    setTimeout(() => {
+                        const id = this.auth.form.id.toUpperCase().trim();
+                        const u = this._db[id];
+                        
+                        if (u && u.pin === this.auth.form.pin) {
+                            this.session.user = u;
+                            this.session.active = true;
+                            this.ui.modals.login = false;
+                            this.ui.loading = false;
+                        } else {
+                            this.auth.error = "INVALID CREDENTIALS";
+                            this.ui.loading = false;
+                        }
+                    }, 1500);
                 },
                 openWithdrawal() { this.ui.paymentMethod = null; this.ui.paymentStep = 'select'; this.ui.modals.emergency = true; },
                 terminateSession() { this.session.active = false; this.session.user = null; this.auth.form = { id: '', pin: '' }; },
@@ -244,4 +282,3 @@
     </script>
 </body>
 </html>
-
